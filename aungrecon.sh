@@ -33,19 +33,18 @@ tools=(
     "paramspider"         # Parameter discovery
     "whatweb"             # Web tech fingerprinting
     "uro"                 # URL deduplication
-    "httpx"               # HTTP probing
+    "httpx-go"               # HTTP probing
     "subzy"               # Subdomain takeover detection
     "urldedupe"           # URL deduplication tool
     "anew"                # Deduplicate and merge URLs
     "ffuf"                # Fuzzing tool
     "gau"                 # Fetch URLs from public archives
-    "gf"                  # Grep patterns for vulnerabilities
+    "gf-go"                  # Grep patterns for vulnerabilities
     "nuclei"              # Vulnerability scanner
     "dalfox"              # XSS vulnerability scanner
     "katana"              # Web crawling
     "nikto"               # Web server scanner
     "python3"             # Python runtime
-    "Gxss"                # Reflection-based XSS scanner
     "kxss"                # Cross-site scripting detection
     "unfurl"              # Extract components from URLs
     "gitdorks_go"         # GitHub dorking
@@ -76,19 +75,6 @@ echo -e "##### Welcome to the AungRecon main script #####"
 echo -e "####################################################################################${colors[reset]}"
 
 echo -e "${colors[blue]}"
-cat << "EOF"
- ▄▄▄       █    ██  ███▄    █   ▄████  ██▀███  ▓█████  ▄████▄   ▒█████   ███▄    █ 
-▒████▄     ██  ▓██▒ ██ ▀█   █  ██▒ ▀█▒▓██ ▒ ██▒▓█   ▀ ▒██▀ ▀█  ▒██▒  ██▒ ██ ▀█   █ 
-▒██  ▀█▄  ▓██  ▒██░▓██  ▀█ ██▒▒██░▄▄▄░▓██ ░▄█ ▒▒███   ▒▓█    ▄ ▒██░  ██▒▓██  ▀█ ██▒
-░██▄▄▄▄██ ▓▓█  ░██░▓██▒  ▐▌██▒░▓█  ██▓▒██▀▀█▄  ▒▓█  ▄ ▒▓▓▄ ▄██▒▒██   ██░▓██▒  ▐▌██▒
- ▓█   ▓██▒▒▒█████▓ ▒██░   ▓██░░▒▓███▀▒░██▓ ▒██▒░▒████▒▒ ▓███▀ ░░ ████▓▒░▒██░   ▓██░
- ▒▒   ▓▒█░░▒▓▒ ▒ ▒ ░ ▒░   ▒ ▒  ░▒   ▒ ░ ▒▓ ░▒▓░░░ ▒░ ░░ ░▒ ▒  ░░ ▒░▒░▒░ ░ ▒░   ▒ ▒ 
-  ▒   ▒▒ ░░░▒░ ░ ░ ░ ░░   ░ ▒░  ░   ░   ░▒ ░ ▒░ ░ ░  ░  ░  ▒     ░ ▒ ▒░ ░ ░░   ░ ▒░
-  ░   ▒    ░░░ ░ ░    ░   ░ ░ ░ ░   ░   ░░   ░    ░   ░        ░ ░ ░ ▒     ░   ░ ░ 
-      ░  ░   ░              ░       ░    ░        ░  ░░ ░          ░ ░           ░ 
-                                                      ░                            
-                                                      www.aungsanoo.com
-EOF
 echo -e "${colors[reset]}"
 
 # Tool check function
@@ -158,7 +144,7 @@ find_subdomains_and_endpoints() {
     echo -e "${colors[yellow]}[+] Finding subdomains...${colors[reset]}"
     subfinder -d "$website_input" -all -recursive > "$output_dir/subdomains.txt"
     echo -e "${colors[yellow]}[+] Filtering alive subdomains...${colors[reset]}"
-    cat "$output_dir/subdomains.txt" | httpx -silent > "$output_dir/alivesub.txt"
+    cat "$output_dir/subdomains.txt" | httpx-go -silent > "$output_dir/alivesub.txt"
     echo -e "${colors[yellow]}[+] Checking for subdomain takeover vulnerabilities using Subzy...${colors[reset]}"
     subzy run --targets "$output_dir/subdomains.txt" | tee "$subzy_output_dir/subzy_results.txt"
     echo -e "${colors[green]}[+] Subdomain takeover detection completed. Results saved in subzy_results.txt.${colors[reset]}"
@@ -183,11 +169,11 @@ find_subdomains_and_endpoints() {
     echo -e "${colors[blue]}[+] Filtering URLs for potential bsqli endpoints...${colors[reset]}"
     cat "$output_dir/allurls.txt" | grep -E ".php|.asp|.aspx|.jspx|.jsp" | grep '=' | sed 's/=.*/=/' | sort | uniq > "$output_dir/bsqli_output.txt"
     echo -e "${colors[blue]}[+] Filtering URLs for potential XSS endpoints...${colors[reset]}"
-    cat "$output_dir/allurls.txt" | Gxss | kxss | grep -oP '^URL: \K\S+' | sed 's/=.*/=/' | sort -u > "$output_dir/xss_output.txt"
+    cat "$output_dir/allurls.txt"  | kxss | grep -oP '^URL: \K\S+' | sed 's/=.*/=/' | sort -u > "$output_dir/xss_output.txt"
     echo -e "${colors[blue]}[+] Filtering URLs for potential Open Redirect endpoints...${colors[reset]}"
-    cat "$output_dir/allurls.txt" | gf or | sed 's/=.*/=/' | sort -u > "$output_dir/open_redirect_output.txt"
+    cat "$output_dir/allurls.txt" | gf-go or | sed 's/=.*/=/' | sort -u > "$output_dir/open_redirect_output.txt"
     echo -e "${colors[blue]}[+] Filtering URLs for potential LFI endpoints...${colors[reset]}"
-    cat "$output_dir/allurls.txt" | gf lfi | sed 's/=.*/=/' | sort -u > "$output_dir/lfi_output.txt"
+    cat "$output_dir/allurls.txt" | gf-go lfi | sed 's/=.*/=/' | sort -u > "$output_dir/lfi_output.txt"
 }
 
 # SQLi detection using BSQLi
