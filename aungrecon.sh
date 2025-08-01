@@ -11,7 +11,6 @@ or_output_dir="$output_dir/or_results"
 secretfinder_output_dir="$output_dir/secretfinder_results"
 nikto_output_dir="$output_dir/nikto_results"
 multiple_vulnerabilities_output_dir="$output_dir/multiple_vulnerabilities_results"
-whatweb_output_dir="$output_dir/whatweb_results"
 subzy_output_dir="$output_dir/subzy_results"
 naabu_output_file="$output_dir/naabu_ports_results"
 github_repo="https://github.com/aungsanoo-usa/aungrecon.git"
@@ -22,7 +21,7 @@ GITHUB_TOKENS="$script_dir/github_token.txt"
 prepare_output_files() {
     echo -e "${colors[blue]}[+] Preparing and cleaning output files...${colors[reset]}"
     rm -rf "$output_dir" "$paramspider_results_dir"
-    mkdir -p "$output_dir" "$paramspider_results_dir" "$bsqli_output_dir" "$whatweb_output_dir" "$xss_output_dir" "$lfi_output_dir" "$or_output_dir" "$secretfinder_output_dir" "$nikto_output_dir" "$multiple_vulnerabilities_output_dir" "$subzy_output_dir" "$osint_output_dir" "$naabu_output_file"
+    mkdir -p "$output_dir" "$paramspider_results_dir" "$bsqli_output_dir" "$xss_output_dir" "$lfi_output_dir" "$or_output_dir" "$secretfinder_output_dir" "$nikto_output_dir" "$multiple_vulnerabilities_output_dir" "$subzy_output_dir" "$osint_output_dir" "$naabu_output_file"
     for file in subdomains.txt alivesub.txt final.txt katana_endpoints.txt; do
         > "$output_dir/$file"
     done
@@ -31,11 +30,9 @@ prepare_output_files() {
 tools=(
     "subfinder"           # Subdomain enumeration
     "paramspider"         # Parameter discovery
-    "whatweb"             # Web tech fingerprinting
     "uro"                 # URL deduplication
     "httpx-go"               # HTTP probing
     "subzy"               # Subdomain takeover detection
-    "urldedupe"           # URL deduplication tool
     "anew"                # Deduplicate and merge URLs
     "ffuf"                # Fuzzing tool
     "gau"                 # Fetch URLs from public archives
@@ -114,13 +111,6 @@ test_connectivity() {
     # If all tests fail
     echo -e "${bred}[!] Please check your internet connection and then try again...${reset}"
     exit 1
-}
-
-# WhatWeb scan
-run_whatweb_scan() {
-    echo -e "${colors[yellow]}[+] Running WhatWeb scan to gather website information...${colors[reset]}"
-    # Run WhatWeb and clean ANSI escape sequences using sed
-    whatweb -a 3 "$website_url" | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" | tee "$whatweb_output_dir/whatweb.txt"
 }
 
 run_naabu_scan() {
@@ -746,7 +736,6 @@ menu() {
             if [ "$subdomains_discovered" != true ]; then
             echo -e "${colors[yellow]}[+] Starting Full Scan (includes Option 1)...${colors[reset]}"
             prepare_output_files
-            run_whatweb_scan
             find_subdomains_and_endpoints
             run_naabu_scan
             find_sqli_vulnerabilities
